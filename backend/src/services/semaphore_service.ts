@@ -7,6 +7,8 @@ import { log } from "console";
 
 
 export class SemaphoreService {
+    private static _instance: SemaphoreService;
+
     TREE_DEPTH: number = 23;
     GROUP_ID: bigint = BigInt(keccak256(Buffer.from("GLOBAL".split('').map(c => c.charCodeAt(0)))));
     group: Group;
@@ -62,5 +64,13 @@ export class SemaphoreService {
         }
 
         return verifyProof(craftedProof, this.TREE_DEPTH);
+    }
+
+    /**
+     * Get singleton instance of the service
+     */
+    public static get Instance() {
+        // Do you need arguments? Make it a regular static method instead.
+        return this._instance || (this._instance = new this());
     }
 }

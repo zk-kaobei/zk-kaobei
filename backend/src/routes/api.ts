@@ -1,6 +1,6 @@
 import express from 'express';
 import Debug from 'debug';
-import { SemaphoreService } from '../semaphore_service';
+import { SemaphoreService } from '../services/semaphore_service';
 import { FullProof } from "@semaphore-protocol/proof"
 import { MerkleProof } from '@zk-kit/incremental-merkle-tree';
 import { PostData, Post } from '../interfaces/post';
@@ -8,7 +8,6 @@ import { keccak256 } from '@ethersproject/keccak256';
 
 
 const log = Debug('Kaobei:api');
-const semaphoreService = new SemaphoreService();
 const router = express.Router();
 
 router.use((req, res, next) => {
@@ -31,7 +30,7 @@ router.post('/register', async function (req: express.Request, res: express.Resp
 
     // Add user to Semaphore Service
     try {
-        semaphoreService.addMember(BigInt(identityCommitment));
+        SemaphoreService.Instance.addMember(BigInt(identityCommitment));
         res.status(200).json({
             message: 'Successfully registered',
         });
@@ -54,7 +53,7 @@ router.post('/merkleproof', async function (req: express.Request, res: express.R
     }
 
     try {
-        const merkleProof: MerkleProof | undefined = await semaphoreService.genMerkleProof(BigInt(identityCommitment));
+        const merkleProof: MerkleProof | undefined = await SemaphoreService.Instance.genMerkleProof(BigInt(identityCommitment));
         if (merkleProof === undefined) {
             // identityCommitment not found within group
             res.status(400).json({
@@ -92,7 +91,7 @@ router.post('/post', async function (req: express.Request, res: express.Response
         })
 
         // Verify that the proof
-        const verified: boolean = await semaphoreService.verifyProof(restoredProof);
+        const verified: boolean = await SemaphoreService.Instance.verifyProof(restoredProof);
         if (!verified) {
             res.status(403).json({
                 message: 'Invalid proof',
@@ -105,6 +104,14 @@ router.post('/post', async function (req: express.Request, res: express.Response
         if (BigInt(hashedPostData) !== BigInt(restoredProof.signal)) {
             res.status(403).json({
                 message: 'Malformed post data',
+            });
+            return;
+        }
+
+        // Checking type of postdata
+        if (typeof title !== 'string' || typeof body !== 'string' || !Array.isArray(tags)) {
+            res.status(403).json({
+                message: 'Invalid post data',
             });
             return;
         }

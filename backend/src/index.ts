@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { SemaphoreService } from './semaphore_service';
+import { SemaphoreService } from './services/semaphore_service';
 import Debug from 'debug';
 
 import apiRoute from './routes/api'
