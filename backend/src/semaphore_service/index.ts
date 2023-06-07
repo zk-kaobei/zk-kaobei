@@ -2,6 +2,8 @@ import { BigNumberish, Group } from "@semaphore-protocol/group"
 import { Identity } from "@semaphore-protocol/identity"
 import { Proof, FullProof, verifyProof } from "@semaphore-protocol/proof"
 import { keccak256 } from "@ethersproject/keccak256"
+import { debug } from "debug";
+import { log } from "console";
 
 
 export class SemaphoreService {
@@ -51,6 +53,14 @@ export class SemaphoreService {
      * Verify the proof
      */
     async verifyProof(fullProof: FullProof) {
-        return verifyProof(fullProof, this.TREE_DEPTH);
+        const craftedProof: FullProof = {
+            merkleTreeRoot: BigInt(this.group.root),
+            nullifierHash: fullProof.nullifierHash,
+            proof: fullProof.proof,
+            signal: fullProof.signal,
+            externalNullifier: fullProof.externalNullifier,
+        }
+
+        return verifyProof(craftedProof, this.TREE_DEPTH);
     }
 }

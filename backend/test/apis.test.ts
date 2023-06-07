@@ -1,17 +1,32 @@
 import app from '../src/index';
-import chai from 'chai';
+import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import 'mocha';
+import { PostData } from '../src/interfaces/post';
+import { MerkleProof } from '@zk-kit/incremental-merkle-tree';
+import { FullProof, generateProof } from "@semaphore-protocol/proof"
+import { Group } from '@semaphore-protocol/group';
+import { Identity } from '@semaphore-protocol/identity';
+import { keccak256 } from '@ethersproject/keccak256';
 
 
 chai.should();
 chai.use(chaiHttp); 
 
+const identity = new Identity();
+let merkleProof: MerkleProof;
+
+const postInfo = {
+    title: "Hello World",
+    body: "This is a test post",
+    tags: ["test", "post"],
+}
+
 describe('Basic APIs', () => {
     describe("/register", () => {
-        it("Should able to accept valid identityCommitment", (done) => {
+        it("Should able to accept valid identityCommitment", () => {
             const payload = {
-                identityCommitment: "6828243895505346095515572757220593250316546881300115776179976693064389498337",
+                identityCommitment: identity.commitment.toString(),
                 oAuthToken: "",
             }
 
@@ -20,11 +35,10 @@ describe('Basic APIs', () => {
                 .send(payload)
                 .end((err: any, res: any) => {
                     res.should.have.status(200);
-                    done();
                 })
         })
 
-        it("Should reject invalid identityCommitment", (done) => {
+        it("Should reject invalid identityCommitment", () => {
             const payload = {
                 identityCommitment: "I_AM_NOT_A_NUMBER",
                 oAuthToken: "",
@@ -35,11 +49,10 @@ describe('Basic APIs', () => {
                 .send(payload)
                 .end((err: any, res: any) => {
                     res.should.have.status(400);
-                    done();
                 })
         })
 
-        it("Should reject empty identityCommitment", (done) => {
+        it("Should reject empty identityCommitment", () => {
             const payload = {
                 identityCommitment: "",
                 oAuthToken: "",
@@ -50,8 +63,111 @@ describe('Basic APIs', () => {
                 .send(payload)
                 .end((err: any, res: any) => {
                     res.should.have.status(400);
-                    done();
                 })
         })
     })
+
+    describe("/merkleproof", () => {
+        it("Should able to generate valid proof", () => {
+            const payload = {
+                identityCommitment: identity.commitment.toString()
+            }
+
+            chai.request(app)
+                .post('/api/merkleproof')
+                .send(payload)
+                .end((err: any, res: any) => {
+                    res.should.have.status(200);
+                    merkleProof = JSON.parse(JSON.stringify(res.body.merkleProof), (key, value) => {
+                        if (typeof value === 'string' && value.match(/^[0-9]+n$/))
+                        return BigInt(value.slice(0, -1))
+                        return value
+                    })                    
+                })
+        })
+
+        it("Should able to reject outsider's identityCommitment", () => {
+            const payload = {
+                identityCommitment: "6828243895505346095515572757220593250316546881300115776179976693060000000000"
+            }
+
+            chai.request(app)
+                .post('/api/merkleproof')
+                .send(payload)
+                .end((err: any, res: any) => {
+                    res.should.have.status(400);
+                })
+        })
+    })
+
+    describe("/post", () => {
+        it("Should able to verify a valid proof", async () => {
+            const signal = keccak256(Buffer.from(JSON.stringify(postInfo)));
+            const externalNullifier = keccak256(Buffer.from("3.1416"));
+            const fullProof: FullProof = await generateProof(identity, merkleProof, externalNullifier, signal, {
+                zkeyFilePath: "./snark_artifacts/semaphore.zkey",
+                wasmFilePath: "./snark_artifacts/semaphore.wasm"
+            });
+
+            const payload = {
+                title: postInfo.title,
+                body: postInfo.body,
+                tags: postInfo.tags,
+                fullProof: fullProof,
+            }
+
+            const res = await chai.request(app)
+                .post('/api/post')
+                .send(payload);
+            expect(res.body.message).to.equal('Successfully posted!');
+            expect(res.status).to.equal(200);
+        })
+
+        it("Should able to reject a invalid proof", async () => {
+            const anotherIdentity = new Identity();
+            const group = new Group(1, 23, [anotherIdentity.commitment]);
+            const signal = keccak256(Buffer.from(JSON.stringify(postInfo)));
+            const externalNullifier = keccak256(Buffer.from("3.1416"));
+            const invalidFullProof: FullProof = await generateProof(anotherIdentity, group, externalNullifier, signal, {
+                zkeyFilePath: "./snark_artifacts/semaphore.zkey",
+                wasmFilePath: "./snark_artifacts/semaphore.wasm"
+            });
+
+            const payload = {
+                title: postInfo.title,
+                body: postInfo.body,
+                tags: postInfo.tags,
+                fullProof: invalidFullProof,
+            }
+
+            const res = await chai.request(app)
+                .post('/api/post')
+                .send(payload);
+            expect(res.body.message).to.equal('Invalid proof');
+            expect(res.status).to.equal(403);
+        })
+
+        it("Should able to reject a valid proof with malformed post data", async () => {
+            const signal = keccak256(Buffer.from(JSON.stringify(postInfo)));
+            const externalNullifier = keccak256(Buffer.from("3.1416"));
+            const fullProof: FullProof = await generateProof(identity, merkleProof, externalNullifier, signal, {
+                zkeyFilePath: "./snark_artifacts/semaphore.zkey",
+                wasmFilePath: "./snark_artifacts/semaphore.wasm"
+            });
+
+            const payload = {
+                title: "I'm tainted!",
+                body: "Me too!!",
+                tags: ["yay"],
+                fullProof: fullProof,
+            }
+
+            const res = await chai.request(app)
+                .post('/api/post')
+                .send(payload);
+            expect(res.body.message).to.equal('Malformed post data');
+            expect(res.status).to.equal(403);
+        })
+    })
 })
+

@@ -1,7 +1,10 @@
 import express from 'express';
 import Debug from 'debug';
 import { SemaphoreService } from '../semaphore_service';
+import { FullProof } from "@semaphore-protocol/proof"
 import { MerkleProof } from '@zk-kit/incremental-merkle-tree';
+import { PostData, Post } from '../interfaces/post';
+import { keccak256 } from '@ethersproject/keccak256';
 
 
 const log = Debug('Kaobei:api');
@@ -44,7 +47,7 @@ router.post('/register', async function (req: express.Request, res: express.Resp
 router.post('/merkleproof', async function (req: express.Request, res: express.Response) {
     const { identityCommitment } = req.body;
     if (!identityCommitment) {
-        res.status(418).json({
+        res.status(400).json({
             message: 'Missing identityCommitment',
         });
         return;
@@ -54,7 +57,7 @@ router.post('/merkleproof', async function (req: express.Request, res: express.R
         const merkleProof: MerkleProof | undefined = await semaphoreService.genMerkleProof(BigInt(identityCommitment));
         if (merkleProof === undefined) {
             // identityCommitment not found within group
-            res.status(418).json({
+            res.status(400).json({
                 message: 'Identity commitment not found',
             });
             return;
@@ -65,10 +68,60 @@ router.post('/merkleproof', async function (req: express.Request, res: express.R
         });
 
     } catch (e) {
-        res.status(400).json({
+        console.error(e);
+        res.status(500).json({
             message: "Something went wrong Q_Q",
         });
     }
 });
+
+router.post('/post', async function (req: express.Request, res: express.Response) {
+    const { title, body, tags, fullProof } = req.body;
+    if (!title || !body || !tags || !fullProof) {
+        res.status(400).json({
+            message: 'Missing valid parameters',
+        });
+        return;
+    }
+
+    try {
+        const restoredProof: FullProof = JSON.parse(JSON.stringify(fullProof), (key, value) => {
+            if (typeof value === 'string' && value.match(/^[0-9]+n$/))
+            return BigInt(value.slice(0, -1))
+            return value
+        })
+
+        // Verify that the proof
+        const verified: boolean = await semaphoreService.verifyProof(restoredProof);
+        if (!verified) {
+            res.status(403).json({
+                message: 'Invalid proof',
+            });
+            return;
+        }
+
+        // Verify that the post data matches the signal in the proof
+        const hashedPostData = keccak256(Buffer.from(JSON.stringify({title, body, tags})));
+        if (BigInt(hashedPostData) !== BigInt(restoredProof.signal)) {
+            res.status(403).json({
+                message: 'Malformed post data',
+            });
+            return;
+        }
+        
+        log("Proof verified successfully with nullifierHash %s", restoredProof.nullifierHash.toString());
+
+        // TODO: Store post data
+        res.status(200).json({
+            message: 'Successfully posted!',
+        });
+    
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({
+            message: "Something went wrong Q_Q",
+        });
+    }
+})
 
 export default router;
