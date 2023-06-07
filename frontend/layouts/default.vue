@@ -1,0 +1,18 @@
+<script lang="ts" setup>
+const { appName } = useRuntimeConfig().public
+</script>
+
+<template>
+  <v-card>
+    <v-layout>
+      <v-main>
+        <v-container
+          class="d-flex justify-center align-center flex-column"
+          style="min-height: 100dvh;"
+        >
+          <slot />
+        </v-container>
+      </v-main>
+    </v-layout>
+  </v-card>
+</template>
