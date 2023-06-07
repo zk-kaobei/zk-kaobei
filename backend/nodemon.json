@@ -1,7 +1,7 @@
 {
     "watch": [
-        "./"
+        "./src"
     ],
     "ext": "ts",
-    "exec": "DEBUG=* tsx index.ts"
+    "exec": "DEBUG=* tsx src/index.ts"
 }
