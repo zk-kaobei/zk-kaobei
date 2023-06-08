@@ -5,8 +5,6 @@ const apiProxyTarget = process.env.API_PROXY_TARGET || 'http://localhost:80'
 const APP_NAME = process.env.APP_NAME || 'Semaphore Based Kao Bei Protocol'
 const CLIENT_ID = process.env.CLIENT_ID || 'undefined'
 
-console.log(process.env.CLIENT_ID)
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
@@ -19,6 +17,7 @@ export default defineNuxtConfig({
       },
     ],
     '@vueuse/nuxt',
+    'dayjs-nuxt',
   ],
   runtimeConfig: {
     public: {
@@ -76,4 +75,10 @@ export default defineNuxtConfig({
       ],
     },
   },
+  dayjs: {
+    locales: ['en'],
+    plugins: ['relativeTime', 'utc', 'timezone'],
+    defaultLocale: 'en',
+    defaultTimezone: 'Asia/Taipei',
+  }
 })

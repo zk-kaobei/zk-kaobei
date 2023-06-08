@@ -1,9 +1,10 @@
 <script setup lang="ts">
 const route = useRoute()
-const code = route.query.code as string
+const code = ref((route.query.code as string | undefined) ?? null)
+const loading = ref('')
 
 const { clientId } = useRuntimeConfig().public
-const identity = useIdentity()
+const zkStore = useZkStore()
 
 const oauthCallbackURL = computed(() => {
   const url = new URL('https://id.nycu.edu.tw/o/authorize/')
@@ -14,26 +15,35 @@ const oauthCallbackURL = computed(() => {
   return url.toString()
 })
 
-if (code) {
-  ;(async () => {
-    const { success, message } = await apiRegister(identity.value, code)
-    console.log({ success, message })
-    if (success) navigateTo('/posts')
-  })()
-}
+onMounted(async () => {
+  if (code.value) {
+    loading.value = 'Registering identity...'
+    const { success, message } = await zkStore.registerIdentity(code.value)
+    if (success) {
+      navigateTo('/')
+    } else {
+      alert(message)
+    }
+    loading.value = ''
+  }
+})
 </script>
 
 <template>
-  <template v-if="!code">
+  <template v-if="loading">
+    <v-progress-circular indeterminate color="primary" />
+    <br />
+    <span class="text-caption">
+      {{ loading }}
+    </span>
+  </template>
+  <template v-else>
     <v-img max-height="200" src="/nycu-seal.png" />
     <v-btn
       color="primary"
       :href="oauthCallbackURL"
       text="Login with NYCU OAuth"
     />
-  </template>
-  <template v-else>
-    {{ code }}
   </template>
 </template>
 
