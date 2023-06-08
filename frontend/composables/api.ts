@@ -30,7 +30,8 @@ export function apiFetch(
       const success = resp.ok
       const data = JSONparseBigInt(text)
       if (!skipMessage && (data.message || !success)) {
-        useMessageStore().message = data.message ?? 'Unknown error'
+        useMessageStore().message =
+          data.message ?? `${resp.status} ${resp.statusText}`
       }
       return { success, ...data }
     })
@@ -51,17 +52,19 @@ export function apiRegister(identityCommitment: BigInt, oAuthToken: string) {
 }
 
 export function apiMerkleProof(identityCommitment: BigInt) {
-  return apiFetch('POST', '/merkleproof', {
-    identityCommitment,
-  }, true)
+  return apiFetch(
+    'POST',
+    '/merkleproof',
+    {
+      identityCommitment,
+    },
+    true,
+  )
 }
 
-export function apiPost(
-  postInfo: PostInfo,
-  fullProof: FullProof,
-) {
+export function apiPost(data: PostInfo, fullProof: FullProof) {
   return apiFetch('POST', '/post', {
-    ...postInfo,
+    ...data,
     fullProof,
   })
 }
@@ -70,8 +73,9 @@ export function apiPosts() {
   return apiFetch('GET', '/posts')
 }
 
-export function apiVote(id: string, vote: number) {
-  return apiFetch('POST', `/vote/${id}`, {
-    vote,
+export function apiVote(data: VoteInfo, fullProof: FullProof) {
+  return apiFetch('POST', `/vote`, {
+    ...data,
+    fullProof,
   })
 }

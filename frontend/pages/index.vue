@@ -9,7 +9,8 @@ const createDialog = ref(false)
 const postStore = usePostStore()
 const { posts, lastUpdated } = storeToRefs(postStore)
 
-const currentPost = ref<Post | null>(null)
+const currentPostId = ref<string | null>(null)
+const currentPost = computed(() => postStore.getPost(currentPostId.value))
 
 postStore.updatePosts()
 onMounted(() => {
@@ -26,7 +27,7 @@ onMounted(() => {
           <v-list-item
             :title="post.title"
             :subtitle="post.body"
-            @click="currentPost = post"
+            @click="currentPostId = post.id"
           >
             <template v-slot:prepend>
               <v-avatar color="light-blue">
@@ -47,27 +48,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <v-card class="card">
-      <template v-if="currentPost">
-        <v-card-title>
-          {{ currentPost.title }}
-        </v-card-title>
-        <v-card-text>
-          <v-chip-group>
-            <v-chip v-for="tag in currentPost.tags" :key="tag">
-              {{ tag }}
-            </v-chip>
-          </v-chip-group>
-          {{ currentPost.body }}
-        </v-card-text>
-        <v-btn class="close" variant="outlined" @click="currentPost = null">
-          X
-        </v-btn>
-      </template>
-      <template v-else>
-        <v-card-text> No post selected </v-card-text>
-      </template>
-    </v-card>
+    <PostCard class="card" :post="currentPost" />
 
     <div class="actions">
       <v-btn v-if="!merkleProof" href="/register"> Register</v-btn>
@@ -113,12 +94,6 @@ onMounted(() => {
   .card {
     grid-area: card;
     flex-grow: 1;
-    position: relative;
-    .close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-    }
   }
 
   .actions {

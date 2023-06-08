@@ -46,11 +46,11 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      titleTemplate: '%s | ' + APP_NAME,
+      titleTemplate: APP_NAME,
       viewport: 'width=device-width, initial-scale=1',
       charset: 'utf-8',
       htmlAttrs: {
-        lang: 'zh-Hant-TW',
+        lang: 'en',
       },
       meta: [
         {

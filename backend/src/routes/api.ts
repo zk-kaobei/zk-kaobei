@@ -145,17 +145,17 @@ router.get('/posts', async function (req: express.Request, res: express.Response
         res.status(400).json({
             message: 'No posts found',
         });
-        return; 
+        return;
     }
 
     res.status(200).json({
         posts
     });
-}); 
+});
 
 router.post('/vote', async function (req: express.Request, res: express.Response) {
     const { postId, vote, fullProof } = req.body;
-    if (!postId || !vote || !fullProof) {
+    if (!postId || vote == undefined || !fullProof) {
         res.status(400).json({
             message: 'Missing valid parameters',
         });
@@ -168,7 +168,7 @@ router.post('/vote', async function (req: express.Request, res: express.Response
             res.status(400).json({
                 message: 'No post found',
             });
-            return; 
+            return;
         }
 
         // Verify that the proof

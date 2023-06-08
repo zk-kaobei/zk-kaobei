@@ -8,6 +8,16 @@ export const usePostStore = defineStore('poststore', () => {
 
   const lastUpdated = ref(dayjs())
   const posts = ref<Post[]>([])
+  const postMap = computed(() => {
+    const map = new Map<string, Post>()
+    posts.value.forEach((post) => map.set(post.id, post))
+    return map
+  })
+
+  function getPost(id: string | null) {
+    if (!id) return null
+    return postMap.value.get(id) ?? null
+  }
 
   async function updatePosts() {
     const data = await apiPosts()
@@ -20,16 +30,35 @@ export const usePostStore = defineStore('poststore', () => {
     merkleProof: MerkleProof,
     postInfo: PostInfo,
   ) {
-    const signal = keccak256(Buffer.from(JSON.stringify(postInfo)))
-    const externalNullifier = keccak256(Buffer.from('3.1416'))
-    const fullProof = await generateProof(
-      // @ts-ignore
+    const fullProof = await makeFullProof(
       identity,
       merkleProof,
-      externalNullifier,
-      signal,
+      '3.1416',
+      postInfo,
     )
     const result = await apiPost(postInfo, fullProof)
+    if (result.success) updatePosts()
+    return result
+  }
+
+  async function votePost(
+    identity: Readonly<Identity>,
+    merkleProof: MerkleProof,
+    post: Post,
+    vote: boolean,
+  ) {
+    const data: VoteInfo = {
+      postId: post.id,
+      vote,
+    }
+    console.log('vote', post, data)
+    const fullProof = await makeFullProof(
+      identity,
+      merkleProof,
+      post.externalNullifier,
+      data,
+    )
+    const result = await apiVote(data, fullProof)
     if (result.success) updatePosts()
     return result
   }
@@ -37,7 +66,9 @@ export const usePostStore = defineStore('poststore', () => {
   return {
     lastUpdated,
     posts,
+    getPost,
     updatePosts,
     createPost,
+    votePost,
   }
 })
