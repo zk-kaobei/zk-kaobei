@@ -14,8 +14,10 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
 
 const { CLIENT_ID, CLIENT_SECRET } = process.env;
-if (!CLIENT_ID || !CLIENT_SECRET) {
-    throw new Error('Missing CLIENT_ID or CLIENT_SECRET');
+if (process.env.PROD) {
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+        throw new Error('Missing CLIENT_ID or CLIENT_SECRET');
+    }
 }
 
 const log = Debug('Kaobei:api');
@@ -37,30 +39,31 @@ router.post('/register', async function (req: express.Request, res: express.Resp
         return;
     }
 
-    const redirect_url = new URL( req.headers.referer ?? '')
-    redirect_url.searchParams.delete('code')
+    if (process.env.PROD) {
+        const redirect_url = new URL( req.headers.referer ?? '')
+        redirect_url.searchParams.delete('code')
 
-    const data = new URLSearchParams();
-    data.append('grant_type', 'authorization_code');
-    data.append('code', oAuthToken);
-    data.append('client_id', CLIENT_ID);
-    data.append('client_secret', CLIENT_SECRET);
-    data.append('redirect_uri', redirect_url.toString());
+        const data = new URLSearchParams();
+        data.append('grant_type', 'authorization_code');
+        data.append('code', oAuthToken);
+        data.append('client_id', CLIENT_ID!);
+        data.append('client_secret', CLIENT_SECRET!);
+        data.append('redirect_uri', redirect_url.toString());
 
-    // TODO: Verify NYCU OAuth token
-    const result: any = await fetch('https://id.nycu.edu.tw/o/token/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json',
-        },
-        body: data.toString(),
-    }).then(res => res.json())
+        const result: any = await fetch('https://id.nycu.edu.tw/o/token/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json',
+            },
+            body: data.toString(),
+        }).then(res => res.json())
 
-    if (result.error) {
-        return res.status(400).json({
-            message: 'Invalid OAuth token',
-        });
+        if (result.error) {
+            return res.status(400).json({
+                message: 'Invalid OAuth token',
+            });
+        }
     }
 
     // Add user to Semaphore Service
