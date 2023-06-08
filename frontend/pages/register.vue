@@ -11,7 +11,9 @@ const oauthCallbackURL = computed(() => {
   url.searchParams.set('client_id', clientId)
   url.searchParams.set('response_type', 'code')
   url.searchParams.set('scope', 'profile')
-  url.searchParams.set('redirect_uri', location.href)
+  const redirect_url = new URL(location.href)
+  redirect_url.searchParams.delete('code')
+  url.searchParams.set('redirect_uri', redirect_url.toString())
   return url.toString()
 })
 
@@ -22,7 +24,7 @@ onMounted(async () => {
     if (success) {
       navigateTo('/')
     } else {
-      alert(message)
+      navigateTo('/register', { replace: true })
     }
     loading.value = ''
   }
