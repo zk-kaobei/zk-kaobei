@@ -51,7 +51,6 @@ export const usePostStore = defineStore('poststore', () => {
       postId: post.id,
       vote,
     }
-    console.log('vote', post, data)
     const fullProof = await makeFullProof(
       identity,
       merkleProof,

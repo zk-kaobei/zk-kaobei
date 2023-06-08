@@ -11,7 +11,6 @@ export async function makeFullProof(
 ) {
   if (typeof externalNullifier === 'string')
     externalNullifier = keccak256(Buffer.from(externalNullifier))
-  console.log('makeFullProof', externalNullifier, data)
   const fullProof = await generateProof(
     // @ts-ignore
     identity,

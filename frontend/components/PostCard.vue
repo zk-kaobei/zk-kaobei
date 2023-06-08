@@ -48,7 +48,7 @@ async function vote(vote: boolean) {
         </v-card-text>
       </div>
       <v-btn-group variant="text">
-        <v-btn :disabled="loading" click="vote(false)">
+        <v-btn :disabled="loading" @click="vote(false)">
           <v-icon>mdi-minus</v-icon>
         </v-btn>
         <v-btn>
