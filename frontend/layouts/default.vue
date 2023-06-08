@@ -17,7 +17,7 @@ const { message, snackbar } = storeToRefs(useMessageStore())
 
             <template v-slot:actions>
               <v-btn color="pink-lighten-3" variant="text" @click="snackbar = false">
-                ╳
+                X
               </v-btn>
             </template>
           </v-snackbar>
