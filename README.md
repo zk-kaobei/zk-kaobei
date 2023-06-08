@@ -1,4 +1,7 @@
 # Semaphore Based Kao Bei Protocol
+Final Project of NYCU Cryptography Engineering Course
 
-Final Project
-Team C3TF4P
+- Members of Team C3TF4P
+    - @TwinkleStar03
+    - @nella17
+    - @toxicpie
