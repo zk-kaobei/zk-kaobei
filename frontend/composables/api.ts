@@ -25,19 +25,14 @@ export function apiFetch(
     options.body = JSON.stringify(body)
   }
   return fetch(`/api${path}`, options)
-    .then(async (resp) => ({
-      text: await resp.text(),
-      success: resp.ok,
-    }))
-    .then(({ text, success }) => ({
-      success,
-      ...JSONparseBigInt(text),
-    }))
-    .then((resp) => {
-      if (!skipMessage && resp.message) {
-        useMessageStore().message = resp.message
+    .then(async (resp) => {
+      const text = await resp.text()
+      const success = resp.ok
+      const data = JSONparseBigInt(text)
+      if (!skipMessage && (data.message || !success)) {
+        useMessageStore().message = data.message ?? 'Unknown error'
       }
-      return resp
+      return { success, ...data }
     })
     .catch((err) => {
       console.error(err)

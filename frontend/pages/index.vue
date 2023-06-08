@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const dayjs = useDayjs()
+
 const zkStore = useZkStore()
 const { merkleProof } = storeToRefs(zkStore)
 
@@ -18,16 +20,32 @@ onMounted(() => {
 
 <template>
   <div class="box">
-    <v-list class="list" lines="two">
-      <template v-for="post in posts" :key="post.id">
-        <v-list-item
-          :title="post.title"
-          :subtitle="post.body"
-          @click="currentPost = post"
-        />
-        <v-divider />
-      </template>
-    </v-list>
+    <div class="list">
+      <v-list v-if="posts.length > 0" lines="two">
+        <template v-for="post in posts" :key="post.id">
+          <v-list-item
+            :title="post.title"
+            :subtitle="post.body"
+            @click="currentPost = post"
+          >
+            <template v-slot:prepend>
+              <v-avatar color="light-blue">
+                {{ post.voteCount }}
+              </v-avatar>
+            </template>
+            <template v-slot:append>
+              <span class="text-caption">
+                {{ dayjs(post.createdAt).toNow() }}
+              </span>
+            </template>
+          </v-list-item>
+          <v-divider />
+        </template>
+      </v-list>
+      <div v-else class="h-100 d-flex justify-center align-center text-caption">
+        No posts found
+      </div>
+    </div>
 
     <v-card class="card">
       <template v-if="currentPost">
@@ -35,6 +53,11 @@ onMounted(() => {
           {{ currentPost.title }}
         </v-card-title>
         <v-card-text>
+          <v-chip-group>
+            <v-chip v-for="tag in currentPost.tags" :key="tag">
+              {{ tag }}
+            </v-chip>
+          </v-chip-group>
           {{ currentPost.body }}
         </v-card-text>
         <v-btn class="close" variant="outlined" @click="currentPost = null">
@@ -81,6 +104,7 @@ onMounted(() => {
   .list {
     grid-area: list;
     max-height: calc(100dvh - 104px);
+    min-height: calc(100dvh - 104px);
     height: auto;
     width: 320px;
     overflow: scroll;

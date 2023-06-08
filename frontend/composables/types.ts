@@ -4,6 +4,8 @@ interface Post {
   body: string
   tags: string[]
   externalNullfier: BigInt
+  createdAt: number
+  voteCount: number
 }
 
 interface PostInfo {
