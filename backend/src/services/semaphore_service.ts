@@ -1,16 +1,16 @@
-import { BigNumberish, Group } from "@semaphore-protocol/group"
-import { Identity } from "@semaphore-protocol/identity"
-import { Proof, FullProof, verifyProof } from "@semaphore-protocol/proof"
-import { keccak256 } from "@ethersproject/keccak256"
-import { debug } from "debug";
-import { log } from "console";
+import { BigNumberish, Group } from '@semaphore-protocol/group'
+import { Identity } from '@semaphore-protocol/identity'
+import { Proof, FullProof, verifyProof } from '@semaphore-protocol/proof'
+import { keccak256 } from '@ethersproject/keccak256'
+import { debug } from 'debug';
+import { log } from 'console';
 
 
 export class SemaphoreService {
     private static _instance: SemaphoreService;
 
     TREE_DEPTH: number = 23;
-    GROUP_ID: bigint = BigInt(keccak256(Buffer.from("GLOBAL".split('').map(c => c.charCodeAt(0)))));
+    GROUP_ID: bigint = BigInt(keccak256(Buffer.from('GLOBAL'.split('').map(c => c.charCodeAt(0)))));
     group: Group;
 
     constructor() {

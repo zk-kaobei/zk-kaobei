@@ -1,12 +1,14 @@
-import { Post } from "../interfaces/post";
+import { Post } from '../interfaces/post';
 
 
 export class PostService {
     private static _instance: PostService;
     postStorage: Map<string, Post>;
+    nullifiers: Map<BigInt, boolean>;
 
     constructor() {
         this.postStorage = new Map<string, Post>();
+        this.nullifiers = new Map<BigInt, boolean>();
     }
 
     /**
@@ -26,11 +28,34 @@ export class PostService {
     }
 
     /**
+     * Update an old post in the storage, indexed by the post id
+     * @param postId 
+     * @param post 
+     */
+    async updatePost(postId: string, post: Post): Promise<void> {
+        this.postStorage.set(postId, post);
+    }
+
+    /**
      * 
      * @returns all posts in the storage
      */
     async getPosts(): Promise<Post[]> {
         return [...this.postStorage.values()];
+    }
+
+    async addVote(postId: string, upvote: boolean): Promise<void> {
+        const post: Post | undefined = await this.getPost(postId);
+        if (!post) {
+            throw new Error('Post not found');
+        }
+        
+        if (upvote) {
+            post.voteCount++;
+        } else {
+            post.voteCount--;
+        }
+        await this.updatePost(postId, post);
     }
 
     /**
@@ -48,6 +73,23 @@ export class PostService {
      */
     async getPost(postId: string): Promise<Post | undefined> {
         return this.postStorage.get(postId);
+    }
+
+    /**
+     * Nullify a identity
+     * @param nullifier 
+     */
+    async nullify(nullifier: BigInt) {
+        this.nullifiers.set(nullifier, true);
+    }
+
+    /**
+     * Is a nullfiier already nullified?
+     * @param nullifier 
+     * @returns boolean
+     */
+    async alreadyNullified(nullifier: BigInt): Promise<boolean> {
+        return this.nullifiers.has(nullifier);
     }
 
     /**

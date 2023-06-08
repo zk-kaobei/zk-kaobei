@@ -6,7 +6,9 @@ interface Post {
     title: string;
     body: string;
     tags: string[];
-    externalNullifier: BigInt;
+    externalNullifier: bigint;
+    createdAt: number;
+    voteCount: number;
 }
 
 interface PostData {
