@@ -6,7 +6,8 @@
     "type": "module",
     "scripts": {
         "dev": "nodemon",
-        "test": "TEST=1 mocha --timeout 150000 --exit"
+        "test": "TEST=1 mocha --timeout 150000 --exit",
+        "prod": "PROD=1 tsx src/index.ts"
     },
     "keywords": [],
     "author": "",

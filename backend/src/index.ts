@@ -3,7 +3,8 @@ import { SemaphoreService } from './services/semaphore_service';
 import Debug from 'debug';
 
 import apiRoute from './routes/api'
-
+import * as fs from 'fs';
+import * as https from 'https';
 
 const log = Debug('app:log');
 const app = express();
@@ -29,10 +30,19 @@ app.use(express.json({
 }));
 
 app.use('/api', apiRoute);
+
 if (!process.env.TEST) {
     app.use(express.static('static'));
     app.use('/*', express.static('static/404.html'));
-    app.listen(80);
+    if (!process.env.PROD) {
+        app.listen(80);
+    } else {
+        const privateKey  = fs.readFileSync('cert/server.key', 'utf8');
+        const certificate = fs.readFileSync('cert/server.crt', 'utf8');
+        const credentials = {key: privateKey, cert: certificate};
+        const httpsServer = https.createServer(credentials, app);
+        httpsServer.listen(443);
+    }
 }
 
 export default app;
