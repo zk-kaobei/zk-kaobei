@@ -37,25 +37,27 @@ async function vote(vote: boolean) {
           {{ dayjs(props.post.createdAt).toNow() }}
         </span>
       </v-card-title>
-      <v-chip-group class="mx-4">
-        <v-chip v-for="tag in props.post.tags" :key="tag">
-          {{ tag }}
-        </v-chip>
-      </v-chip-group>
-      <v-card-text class="body">
-        {{ props.post.body }}
-      </v-card-text>
-      <v-btn-toggle :disabled="loading">
-        <v-btn @click="vote(false)">
+      <div class="body">
+        <v-chip-group class="mx-4">
+          <v-chip v-for="tag in props.post.tags" :key="tag">
+            {{ tag }}
+          </v-chip>
+        </v-chip-group>
+        <v-card-text>
+          {{ props.post.body }}
+        </v-card-text>
+      </div>
+      <v-btn-group variant="text">
+        <v-btn :disabled="loading" click="vote(false)">
           <v-icon>mdi-minus</v-icon>
         </v-btn>
-        <v-btn variant="text">
+        <v-btn>
           {{ props.post.voteCount }}
         </v-btn>
-        <v-btn @click="vote(true)">
+        <v-btn :disabled="loading" @click="vote(true)">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-      </v-btn-toggle>
+      </v-btn-group>
     </template>
   </v-card>
 </template>
@@ -64,7 +66,7 @@ async function vote(vote: boolean) {
 .card {
   max-height: calc(100dvh - 32px);
   .body {
-    max-height: calc(100dvh - 32px - 64px - 32px - 48px);
+    max-height: calc(100dvh - 32px - 64px - 48px);
     overflow: scroll;
   }
 }

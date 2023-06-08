@@ -7,7 +7,18 @@ const { merkleProof } = storeToRefs(zkStore)
 const createDialog = ref(false)
 
 const postStore = usePostStore()
-const { posts, lastUpdated } = storeToRefs(postStore)
+const { lastUpdated } = storeToRefs(postStore)
+
+const order = ref<'time' | 'vote'>('vote')
+const posts = computed(() => {
+  const ordered = [...postStore.posts]
+  if (order.value === 'time') {
+    ordered.sort((a, b) => b.createdAt - a.createdAt)
+  } else if (order.value === 'vote') {
+    ordered.sort((a, b) => b.voteCount - a.voteCount)
+  }
+  return ordered
+})
 
 const currentPostId = ref<string | null>(null)
 const currentPost = computed(() => postStore.getPost(currentPostId.value))
@@ -21,12 +32,18 @@ onMounted(() => {
 
 <template>
   <div class="box">
+    <v-btn-toggle class="order" v-model="order" borderless density="compact">
+      <v-btn value="vote"> Vote </v-btn>
+      <v-btn value="time"> Time </v-btn>
+    </v-btn-toggle>
+
     <div class="list">
       <v-list v-if="posts.length > 0" lines="two">
         <template v-for="post in posts" :key="post.id">
           <v-list-item
             :title="post.title"
             :subtitle="post.body"
+            :active="currentPostId === post.id"
             @click="currentPostId = post.id"
           >
             <template v-slot:prepend>
@@ -70,22 +87,26 @@ onMounted(() => {
   width: 100%;
 
   display: grid;
-  grid-template-rows: minmax(0, 1fr) max-content;
+  grid-template-rows: max-content minmax(0, 1fr) max-content;
   grid-template-columns: 320px 1fr;
   grid-template-areas:
+    'order card'
     'list card'
     'actions card';
-  gap: 16px;
+  gap: 2px 16px;
 
-  // display: flex;
-  // // flex-direction: column;
-  // justify-content: center;
-  // align-items: stretch;
+  .order {
+    grid-area: order;
+    width: 320px;
+    > * {
+      width: 50%;
+    }
+  }
 
   .list {
     grid-area: list;
-    max-height: calc(100dvh - 104px);
-    min-height: calc(100dvh - 104px);
+    max-height: calc(100dvh - 104px - 40px);
+    min-height: calc(100dvh - 104px - 40px);
     height: auto;
     width: 320px;
     overflow: scroll;
