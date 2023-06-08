@@ -4,15 +4,21 @@ import { MerkleProof } from '@zk-kit/incremental-merkle-tree'
 export const useZkStore = defineStore('zkStore', () => {
   const loading = ref(true)
 
-  const identity = useLocalStorage('identity', new Identity(), {
-    serializer: {
-      read: (v: string) => new Identity(v),
-      write: (v: Identity) => v.toString(),
-    },
-  })
+  const identity = ref(
+    (() => {
+      const identityStr = localStorage.getItem('identity')
+      if (identityStr) return new Identity(identityStr)
+      const identity = new Identity()
+      localStorage.setItem('identity', identity.toString())
+      return identity
+    })(),
+  )
 
   async function registerIdentity(code: string) {
-    const { success, message } = await apiRegister(identity.value.commitment, code)
+    const { success, message } = await apiRegister(
+      identity.value.commitment,
+      code,
+    )
     if (success) {
       await getMerkleProof()
     }

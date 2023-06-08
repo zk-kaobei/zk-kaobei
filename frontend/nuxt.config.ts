@@ -80,5 +80,5 @@ export default defineNuxtConfig({
     plugins: ['relativeTime', 'utc', 'timezone'],
     defaultLocale: 'en',
     defaultTimezone: 'Asia/Taipei',
-  }
+  },
 })

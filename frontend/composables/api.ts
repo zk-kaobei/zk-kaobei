@@ -1,5 +1,4 @@
-import { Identity } from '@semaphore-protocol/identity'
-import { Proof } from '@semaphore-protocol/proof'
+import { FullProof } from '@semaphore-protocol/proof'
 
 export function JSONparseBigInt(text: string) {
   return JSON.parse(text, (key, value) => {
@@ -12,7 +11,7 @@ export function JSONparseBigInt(text: string) {
 export function apiFetch(
   method: 'GET' | 'POST',
   path: string,
-  body: any,
+  body: any = null,
   skipMessage = false,
 ) {
   const options: Record<string, any> = {
@@ -63,21 +62,17 @@ export function apiMerkleProof(identityCommitment: BigInt) {
 }
 
 export function apiPost(
-  title: string,
-  body: string,
-  tags: string[],
-  fullProof: Proof,
+  postInfo: PostInfo,
+  fullProof: FullProof,
 ) {
   return apiFetch('POST', '/post', {
-    title,
-    body,
-    tags,
+    ...postInfo,
     fullProof,
   })
 }
 
 export function apiPosts() {
-  return apiFetch('GET', '/posts', {})
+  return apiFetch('GET', '/posts')
 }
 
 export function apiVote(id: string, vote: number) {

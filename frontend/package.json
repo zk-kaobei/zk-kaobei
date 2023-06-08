@@ -12,6 +12,7 @@
     "vue": "latest"
   },
   "devDependencies": {
+    "@ethersproject/keccak256": "^5.7.0",
     "@mdi/font": "^7.2.96",
     "@nuxt/devtools": "latest",
     "@pinia/nuxt": "^0.4.11",
@@ -28,6 +29,7 @@
     "@nuxt/types": "^2.16.3",
     "@semaphore-protocol/group": "^3.10.1",
     "@semaphore-protocol/identity": "^3.10.1",
-    "@semaphore-protocol/proof": "^3.10.1"
+    "@semaphore-protocol/proof": "^3.10.1",
+    "buffer": "^6.0.3"
   }
 }

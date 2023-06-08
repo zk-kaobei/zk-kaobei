@@ -1,19 +1,19 @@
 <script setup lang="ts">
 const zkStore = useZkStore()
-const { identity, merkleProof } = storeToRefs(zkStore)
+const { merkleProof } = storeToRefs(zkStore)
+
+const createDialog = ref(false)
 
 const postStore = usePostStore()
 const { posts, lastUpdated } = storeToRefs(postStore)
 
 const currentPost = ref<Post | null>(null)
 
-currentPost.value = posts.value[0]
-
-// poststore.updatePosts()
-// onMounted(() => {
-//   const interval = setInterval(updatePosts, 1000 * 60)
-//   onUnmounted(() => clearInterval(interval))
-// })
+postStore.updatePosts()
+onMounted(() => {
+  const interval = setInterval(() => postStore.updatePosts(), 1000 * 60)
+  onUnmounted(() => clearInterval(interval))
+})
 </script>
 
 <template>
@@ -48,12 +48,16 @@ currentPost.value = posts.value[0]
 
     <div class="actions">
       <v-btn v-if="!merkleProof" href="/register"> Register</v-btn>
-      <v-btn v-else @click=""> Create Post</v-btn>
+      <v-btn v-else @click="createDialog = true"> Create Post</v-btn>
       <span class="text-caption">
         Last updated: {{ lastUpdated.toNow() }}
       </span>
     </div>
   </div>
+
+  <v-dialog v-model="createDialog" width="auto" persistent>
+    <PostForm @close="createDialog = false" />
+  </v-dialog>
 </template>
 
 <style scoped lang="scss">
