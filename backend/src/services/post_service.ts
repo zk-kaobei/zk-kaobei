@@ -3,11 +3,16 @@ import { Post } from "../interfaces/post";
 
 export class PostService {
     private static _instance: PostService;
-    postStorage: Map<bigint, Post> = new Map();
+    postStorage: Map<string, Post>;
 
     constructor() {
+        this.postStorage = new Map<string, Post>();
     }
 
+    /**
+     * Load posts from storage
+     * @note Not implemented
+     */
     async loadPostsFromStorage(): Promise<void> {
     }
 
@@ -16,7 +21,7 @@ export class PostService {
      * @param postId 
      * @param post 
      */
-    async addPost(postId: bigint, post: Post): Promise<void> {
+    async addPost(postId: string, post: Post): Promise<void> {
         this.postStorage.set(postId, post);
     }
 
@@ -29,11 +34,19 @@ export class PostService {
     }
 
     /**
+     * Testing function to get the storage
+     * @returns the storage
+     */
+    async _getStorage(): Promise<Map<string, Post>> {
+        return this.postStorage;
+    }
+
+    /**
      * 
      * @param postId 
      * @returns 
      */
-    async getPost(postId: bigint): Promise<Post | undefined> {
+    async getPost(postId: string): Promise<Post | undefined> {
         return this.postStorage.get(postId);
     }
 

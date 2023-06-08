@@ -1,10 +1,12 @@
-import express from 'express';
 import Debug from 'debug';
-import { SemaphoreService } from '../services/semaphore_service';
+import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import { keccak256 } from '@ethersproject/keccak256';
 import { FullProof } from "@semaphore-protocol/proof"
 import { MerkleProof } from '@zk-kit/incremental-merkle-tree';
 import { PostData, Post } from '../interfaces/post';
-import { keccak256 } from '@ethersproject/keccak256';
+import { PostService } from '../services/post_service';
+import { SemaphoreService } from '../services/semaphore_service';
 
 
 const log = Debug('Kaobei:api');
@@ -112,9 +114,18 @@ router.post('/post', async function (req: express.Request, res: express.Response
 
         log("Proof verified successfully with nullifierHash %s", fullProof.nullifierHash.toString());
 
-        // TODO: Store post data
+        const uuidOfPost = uuidv4();
+        PostService.Instance.addPost(uuidOfPost, {
+            id: uuidOfPost,
+            title: title,
+            body: body,
+            tags: tags,
+            externalNullifier: BigInt(keccak256(Buffer.from(uuidOfPost)))
+        });
+
         res.status(200).json({
             message: 'Successfully posted!',
+            postId: uuidOfPost,
         });
 
     } catch (e) {
@@ -124,5 +135,20 @@ router.post('/post', async function (req: express.Request, res: express.Response
         });
     }
 })
+
+router.get('/posts', async function (req: express.Request, res: express.Response) {
+    const posts: Post[] = await PostService.Instance.getPosts();
+    if(!posts) {
+        res.status(400).json({
+            message: 'No posts found',
+        });
+        return; 
+    }
+
+    res.status(200).json({
+        posts
+    });
+});
+
 
 export default router;

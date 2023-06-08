@@ -2,11 +2,11 @@ import { FullProof } from "@semaphore-protocol/proof"
 
 
 interface Post {
-    id: number;
+    id: string;
     title: string;
     body: string;
     tags: string[];
-    externalNullifier: string;
+    externalNullifier: BigInt;
 }
 
 interface PostData {

@@ -10,8 +10,6 @@ dotenv.config({ path: '../.env' });
 const log = Debug('app:log');
 const app = express();
 
-app.use(express.static('static'));
-app.use('/*', express.static('static/404.html'));
 
 // Hacks to make BigInt serializable
 declare global {
@@ -34,6 +32,8 @@ app.use(express.json({
 
 app.use('/api', apiRoute);
 if (!process.env.TEST) {
+    app.use(express.static('static'));
+    app.use('/*', express.static('static/404.html'));
     app.listen(80);
 }
 

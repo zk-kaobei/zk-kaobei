@@ -2,7 +2,7 @@ import app from '../src/index';
 import chai, { expect } from 'chai';
 import chaiHttp from 'chai-http';
 import 'mocha';
-import { PostData } from '../src/interfaces/post';
+import { Post, PostData } from '../src/interfaces/post';
 import { MerkleProof } from '@zk-kit/incremental-merkle-tree';
 import { FullProof, generateProof } from "@semaphore-protocol/proof"
 import { Group } from '@semaphore-protocol/group';
@@ -21,6 +21,8 @@ const postInfo = {
     body: "This is a test post",
     tags: ["test", "post"],
 }
+
+let postId: string;
 
 describe('Basic APIs', () => {
     describe("/register", () => {
@@ -101,7 +103,7 @@ describe('Basic APIs', () => {
     })
 
     describe("/post", () => {
-        it("Should able to verify a valid proof", async () => {
+        it("Should able to post with valid proof", async () => {
             const signal = keccak256(Buffer.from(JSON.stringify(postInfo)));
             const externalNullifier = keccak256(Buffer.from("3.1416"));
             const fullProof: FullProof = await generateProof(identity, merkleProof, externalNullifier, signal, {
@@ -119,11 +121,13 @@ describe('Basic APIs', () => {
             const res = await chai.request(app)
                 .post('/api/post')
                 .send(payload);
+            
+            postId = res.body.postId;
             expect(res.body.message).to.equal('Successfully posted!');
             expect(res.status).to.equal(200);
         })
 
-        it("Should able to reject a invalid proof", async () => {
+        it("Should able to reject a post with invalid proof", async () => {
             const anotherIdentity = new Identity();
             const group = new Group(1, 23, [anotherIdentity.commitment]);
             const signal = keccak256(Buffer.from(JSON.stringify(postInfo)));
@@ -147,7 +151,7 @@ describe('Basic APIs', () => {
             expect(res.status).to.equal(403);
         })
 
-        it("Should able to reject a valid proof with malformed post data", async () => {
+        it("Should able to reject a post with valid proof but post data is malformed", async () => {
             const signal = keccak256(Buffer.from(JSON.stringify(postInfo)));
             const externalNullifier = keccak256(Buffer.from("3.1416"));
             const fullProof: FullProof = await generateProof(identity, merkleProof, externalNullifier, signal, {
@@ -167,6 +171,19 @@ describe('Basic APIs', () => {
                 .send(payload);
             expect(res.body.message).to.equal('Malformed post data');
             expect(res.status).to.equal(403);
+        })
+
+        it("Should able to get post that we posted", async () => {
+            const res = await chai.request(app)
+                .get('/api/posts')
+                .send();
+            
+            expect(res.status).to.equal(200);
+            
+            const posts: Post[] = res.body.posts;
+            expect(posts[0].title).to.equal(postInfo.title);
+            expect(posts[0].body).to.equal(postInfo.body);
+            expect(posts[0].tags).to.deep.equal(postInfo.tags);
         })
     })
 })
