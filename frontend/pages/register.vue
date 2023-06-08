@@ -38,7 +38,7 @@ onMounted(async () => {
     </span>
   </template>
   <template v-else>
-    <v-img max-height="200" src="/nycu-seal.png" />
+    <v-img max-height="200" src="/icon.png" />
     <v-btn
       color="primary"
       :href="oauthCallbackURL"

@@ -7,7 +7,7 @@ const CLIENT_ID = process.env.CLIENT_ID || 'undefined'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: false },
   ssr: false,
   modules: [
     [
@@ -72,6 +72,42 @@ export default defineNuxtConfig({
         },
         { name: 'msapplication-TileColor', content: '#C37F49' },
         { name: 'theme-color', content: '#ffffff' },
+      ],
+      link: [
+        {
+          rel: 'shortcut icon',
+          href: 'favicon.ico',
+        },
+        {
+          rel: 'icon',
+          type: 'image/x-icon',
+          sizes: '16x16 32x32',
+          href: 'favicon.ico',
+        },
+        {
+          rel: 'apple-touch-icon',
+          sizes: '152x152',
+          href: 'favicon-152-precomposed.png',
+        },
+        {
+          rel: 'apple-touch-icon',
+          sizes: '120x120',
+          href: 'favicon-120-precomposed.png',
+        },
+        {
+          rel: 'apple-touch-icon',
+          sizes: '180x180',
+          href: 'favicon-180-precomposed.png',
+        },
+        {
+          rel: 'manifest',
+          href: 'manifest.json',
+        },
+        {
+          rel: 'icon',
+          sizes: '192x192',
+          href: 'favicon-192.png',
+        },
       ],
     },
   },
