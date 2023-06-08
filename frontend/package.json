@@ -25,6 +25,7 @@
     "vuetify": "^3.3.3"
   },
   "dependencies": {
+    "@nuxt/types": "^2.16.3",
     "@semaphore-protocol/group": "^3.10.1",
     "@semaphore-protocol/identity": "^3.10.1",
     "@semaphore-protocol/proof": "^3.10.1"
