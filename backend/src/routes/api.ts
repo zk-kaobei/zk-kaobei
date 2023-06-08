@@ -84,14 +84,8 @@ router.post('/post', async function (req: express.Request, res: express.Response
     }
 
     try {
-        const restoredProof: FullProof = JSON.parse(JSON.stringify(fullProof), (key, value) => {
-            if (typeof value === 'string' && value.match(/^[0-9]+n$/))
-            return BigInt(value.slice(0, -1))
-            return value
-        })
-
         // Verify that the proof
-        const verified: boolean = await SemaphoreService.Instance.verifyProof(restoredProof);
+        const verified: boolean = await SemaphoreService.Instance.verifyProof(fullProof);
         if (!verified) {
             res.status(403).json({
                 message: 'Invalid proof',
@@ -101,7 +95,7 @@ router.post('/post', async function (req: express.Request, res: express.Response
 
         // Verify that the post data matches the signal in the proof
         const hashedPostData = keccak256(Buffer.from(JSON.stringify({title, body, tags})));
-        if (BigInt(hashedPostData) !== BigInt(restoredProof.signal)) {
+        if (BigInt(hashedPostData) !== BigInt(fullProof.signal)) {
             res.status(403).json({
                 message: 'Malformed post data',
             });
@@ -115,14 +109,14 @@ router.post('/post', async function (req: express.Request, res: express.Response
             });
             return;
         }
-        
-        log("Proof verified successfully with nullifierHash %s", restoredProof.nullifierHash.toString());
+
+        log("Proof verified successfully with nullifierHash %s", fullProof.nullifierHash.toString());
 
         // TODO: Store post data
         res.status(200).json({
             message: 'Successfully posted!',
         });
-    
+
     } catch (e) {
         console.error(e);
         res.status(500).json({

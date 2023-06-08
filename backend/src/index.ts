@@ -21,10 +21,18 @@ BigInt.prototype.toJSON = function (): string {
     return this.toString() + 'n';
 };
 
-app.use(express.json());
+// Hacks to make express.json() work with BigInt
+app.use(express.json({
+    reviver(key, value){
+        if (typeof value === 'string' && value.match(/^[0-9]+n$/))
+            return BigInt(value.slice(0, -1));
+        return value;
+    }
+}));
+
 app.use('/api', apiRoute);
 if (!process.env.TEST) {
     app.listen(80);
-}   
+}
 
 export default app;
